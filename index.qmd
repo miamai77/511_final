@@ -131,6 +131,8 @@ Next steps include:
 -   Gathering state- and metro-level survey data from PRRI and Pew, with questions relating to RWA
 -   Modeling state-level RWA values from religion and socioeconomic data, to find factors most likely influencing RWA
 -   Predicting county-level RWA values based on this model
+
+
 # Results
 
 \[\~200 words\]

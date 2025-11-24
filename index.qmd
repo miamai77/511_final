@@ -124,6 +124,14 @@ ggplot() + geom_sf(demog_geom, mapping=aes(fill=LDSRATE_2020)) + xlim(-125, -65)
 ```{r, fig.width=12, fig.height=6, fig.cap="Plot of Black Protestant Population"}
 ggplot() + geom_sf(demog_geom, mapping=aes(fill=BPRTRATE_2020)) + xlim(-125, -65) + ylim(23, 50) + scale_fill_gradient2(low="white", high="blue", limits = c(0, 30), oob = scales::squish) + labs(title="Black Protestant Adherence Rate by County", fill="Adherents per 1000 pop.")
 ```
+
+Next steps:
+
+-   Clean religious adherence data to remove outlier values (e.g. suspiciously high)
+-   Load state-, metro-, and socioeconomic-level polling data from PRRI and Pew Research Center, on factors relating to RWA (e.g. "Is there concrete morality?" "Is law and order a major priority for you?" "Is society becoming too weak?")
+-   Create a regression model using caret, based on responses to these questions, with state-level demographic data as training data, to calculate factors influencing such responses.
+-   Predict county RWA values from this/
+
 # Results
 
 \[\~200 words\]

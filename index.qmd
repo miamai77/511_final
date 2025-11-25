@@ -17,7 +17,19 @@ Perhaps class is a primary predictor of RWA, or urban-rural location, or perhaps
 Firstly, we examine existing survey data pertaining to right-wing authoritarianism in the United States. There are two primary surveyors I've found to have information pertaining to RWA-adjacent values: Gallup and the Public Religion Research Institute.
 I take state-by-state and metro-by-metro information on RWA from these sources, and model them from Census Data pertaining to socioeconomic factors, as well as religion data from each county.
 
-```{r, message=F, warning=F}
+```{r, message=F, warning=F, echo=F}
+install.packages("tidyverse")
+install.packages("leaflet")
+install.packages("kableExtra")
+install.packages("htmlwidgets")
+install.packages("widgetframe")
+install.packages("tidyr")
+install.packages("tigris")
+install.packages("ggplot2")
+install.packages("sf")
+install.packages("leaflet")
+install.packages("terra")
+install.packages("doParallel")
 library(tidyverse)
 library(leaflet)
 library(kableExtra)

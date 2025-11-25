@@ -28,6 +28,16 @@ library(tidyr)
 library(tigris)
 library(ggplot2)
 library(sf)
+library(leaflet)
+library(terra)
+library(doParallel)
+```
+
+## Setting up Parallel Cores for Processing Large Datasets
+
+```{r}
+num_cores <- parallel::detectCores() - 1
+registerDoParallel(num_cores)
 ```
 
 ## Loading data
@@ -43,6 +53,7 @@ I did some initial cleaning of the data in excel. If this is not permissible in 
 I began by downloading information on race, education, income, poverty, age, and urban/rural status for all counties in the United States. I used the 2023 American Community survey for all topics except urban/rural status, for which only 2020 was available. Connecticut recently changed its counties into "planning regions" so there is discontinuity from 2021 onward that will hinder joining to religion data later on. So for Connecticut, I used the 2021 ACS.
 
 The following tables were downloaded:
+
 -   B01002: Median Age by Sex (2019-2023 ACS)
 -   B03002: Hispanic or Latino Origin by Race (2019-2023 ACS)
 -   B15003: Educational Attainment for the Population 25 and Older (2019-2023 ACS)
@@ -91,7 +102,11 @@ For smaller religions (Mormonism, Judaism, Islam, Hinduism, Buddhism), I had to 
 religion2020 <- read.csv("data/religion2020.csv")
 religion2020[is.na(religion2020)] <- 0
 religion2020 <- religion2020 |>
-  mutate(TOTJUDRATE_2020 = CJUDRATE_2020 + IJUDRATE_2020 + OJUDRATE_2020 + RJUDRATE_2020 + RFRMRATE_2020, TOTBUDRATE_2020 = MAHBUDRATE_2020 + THBUDRATE_2020 + VAJBUDRATE_2020)
+  mutate(TOTJUDRATE_2020 = CJUDRATE_2020 + 
+           IJUDRATE_2020 + OJUDRATE_2020 + 
+           RJUDRATE_2020 + RFRMRATE_2020, 
+         TOTBUDRATE_2020 = MAHBUDRATE_2020 + 
+           THBUDRATE_2020 + VAJBUDRATE_2020)
 kable(head(religion2020))
 ```
 
@@ -108,29 +123,49 @@ I then join both of these dataframes together to create a single, conjoined data
 counties <- counties(cb=TRUE, year=2021)
 demog_geom <- left_join(counties, total_demographic, by=join_by(AFFGEOID==GEO_ID))
 ```
-
 Then, I take a counties dataframe using census bureau TIGER files, in order to obtain geographic boundaries for counties. This should make plotting easier.
 
 So, now I have my demographic baseline data. My next step is to gather survey data from Pew and the PRRI, and predict right wing authoritarianism by county based on these variables.
 
-```{r, fig.width=12, fig.height=6, fig.cap="Plot of Evangelical Protestant Population"}
-ggplot() + geom_sf(demog_geom, mapping=aes(fill=EVANRATE_2020)) + xlim(-125, -65) + ylim(23, 50) + scale_fill_gradient2(low="white", high="red", limits = c(0, 80), oob = scales::squish) + labs(title="Evangelical Protestant Adherence Rate by County", fill="Adherents per 1000 pop.")
+```{r, fig.cap="Plot of Evangelical Protestant Population"}
+crs(demog_geom)
+demog_geom_prj <- st_transform(demog_geom, crs=4326)
+color_evan <- colorQuantile(palette="viridis", domain=demog_geom_prj$EVANRATE_2020, n=7)
+leaflet() %>%
+  addTiles() %>%
+  setView(lng=-99, lat=39.5, zoom = 3) %>%
+  addPolygons(data=demog_geom_prj, color=~color_evan(demog_geom_prj$EVANRATE_2020), stroke=FALSE, fillOpacity=0.9, popup=~paste("County:", NAME_E, "\n Evangelical Adherence Rate:", round(EVANRATE_2020, 2))) %>%
+  addLegend(data=demog_geom_prj, position="bottomright", pal = color_evan, values = ~EVANRATE_2020, title="Evangelical Protestant Adherence Rate by County (Septiles)")
 ```
 
 ```{r, fig.width=12, fig.height=6, fig.cap="Plot of Mormon Population"}
-ggplot() + geom_sf(demog_geom, mapping=aes(fill=LDSRATE_2020)) + xlim(-125, -65) + ylim(23, 50) + scale_fill_gradient2(low="white", high="purple", limits = c(0, 80), oob = scales::squish) + labs(title="Latter Day Saints Adherence Rate by County", fill="Adherents per 1000 pop.")
+color_lds <- colorNumeric(palette="viridis", domain=demog_geom_prj$LDSRATE_2020)
+leaflet() %>%
+  addTiles() %>%
+  setView(lng=-99, lat=39.5, zoom = 3) %>%
+  addPolygons(data=demog_geom_prj, color=~color_lds(demog_geom_prj$LDSRATE_2020), stroke=FALSE, fillOpacity=0.9, popup=~paste("County:", NAME_E, "\n LDS (Mormon) Adherence Rate:", round(LDSRATE_2020, 2))) %>%
+  addLegend(data=demog_geom_prj, position="bottomright", pal = color_lds, values = ~LDSRATE_2020, title="Latter-Day Saints Adherence Rate by County")
 ```
 
 ```{r, fig.width=12, fig.height=6, fig.cap="Plot of Black Protestant Population"}
-ggplot() + geom_sf(demog_geom, mapping=aes(fill=BPRTRATE_2020)) + xlim(-125, -65) + ylim(23, 50) + scale_fill_gradient2(low="white", high="blue", limits = c(0, 30), oob = scales::squish) + labs(title="Black Protestant Adherence Rate by County", fill="Adherents per 1000 pop.")
+color_bprt <- colorNumeric(palette="viridis", domain=demog_geom_prj$BPRTRATE_2020)
+leaflet() %>%
+  addTiles() %>%
+  setView(lng=-99, lat=39.5, zoom = 3) %>%
+  addPolygons(data=demog_geom_prj, color=~color_bprt(demog_geom_prj$BPRTRATE_2020), stroke=FALSE, fillOpacity=0.9, popup=~paste("County:", NAME_E, "\n Black Protestant Adherence Rate:", round(BPRTRATE_2020, 2))) %>%
+  addLegend(data=demog_geom_prj, position="bottomright", pal = color_bprt, values = ~BPRTRATE_2020, title="Black Protestant Adherence Rate by County")
 ```
 
-Next steps:
+# Cleaning Religion Data
+It appears that there are many outliers in religious adherence values, with some being suspiciously high, even higher than county populations. This may pose problems for modeling Right Wing Authoritarianism in the future.  I will confine values to be within a certain number of z-scores from the mean of all counties.
 
--   Clean religious adherence data to remove outlier values (e.g. suspiciously high)
--   Load state-, metro-, and socioeconomic-level polling data from PRRI and Pew Research Center, on factors relating to RWA (e.g. "Is there concrete morality?" "Is law and order a major priority for you?" "Is society becoming too weak?")
--   Create a regression model using caret, based on responses to these questions, with state-level demographic data as training data, to calculate factors influencing such responses.
--   Predict county RWA values from this/
+# Loading Pew and PRRI Polling Data
+
+# Loading State- and Metro- Level Socioeconomic Data for Model Training
+
+# Variable Importance
+
+# Predicting County-Level RWA
 
 # Results
 
@@ -140,13 +175,19 @@ Tables and figures (maps and other graphics) are carefully planned to convey the
 
 Show tables, plots, etc. and describe them.
 
+```{r, fig.width=6, fig.height=3, fig.cap="Map of completely random data"}
 
+```
 
+```{r}
 
+```
 
 ### Dygraphs Example
 
+```{r}
 
+```
 
 # Conclusions
 

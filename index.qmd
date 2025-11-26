@@ -111,13 +111,31 @@ For smaller religions (Mormonism, Judaism, Islam, Hinduism, Buddhism), I had to 
 
 ```{r}
 religion2020 <- read.csv("data/religion2020.csv")
-religion2020[is.na(religion2020)] <- 0
+### Your solution to deal with the missing data is simple and direct, but I think
+### there may be some problems if you convert all NAs into zeroes. So I suggest 
+### you specify the adherence rating columns to be converted in to 0 if NA.
+rate_colms <- c(
+  "TOTRATE_2020", "EVANRATE_2020", "BPRTRATE_2020", "MPRTRATE_2020",
+  "CATHRATE_2020", "ORTHRATE_2020", "LDSRATE_2020",
+  "CJUDRATE_2020", "IJUDRATE_2020", "OJUDRATE_2020",
+  "RJUDRATE_2020", "RFRMRATE_2020",
+  "MAHBUDRATE_2020", "THBUDRATE_2020", "VAJBUDRATE_2020"
+)
+
 religion2020 <- religion2020 |>
-  mutate(TOTJUDRATE_2020 = CJUDRATE_2020 + 
-           IJUDRATE_2020 + OJUDRATE_2020 + 
-           RJUDRATE_2020 + RFRMRATE_2020, 
-         TOTBUDRATE_2020 = MAHBUDRATE_2020 + 
-           THBUDRATE_2020 + VAJBUDRATE_2020)
+  mutate(
+    across(
+      all_of(rate_cols),
+      ~ replace_na(., 0)
+    )
+  ) |>
+  mutate(
+    TOTJUDRATE_2020 = CJUDRATE_2020 + 
+      IJUDRATE_2020 + OJUDRATE_2020 + 
+      RJUDRATE_2020 + RFRMRATE_2020,
+    TOTBUDRATE_2020 = MAHBUDRATE_2020 + 
+      THBUDRATE_2020 + VAJBUDRATE_2020
+  )
 kable(head(religion2020))
 ```
 

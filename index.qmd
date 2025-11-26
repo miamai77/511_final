@@ -6,7 +6,7 @@ date: today
 date-format: long
 ---
 
-# Introduction
+# Introduction I really like how you frame RWA in a global context first and then narrow down to U.S. counties. I learned a lot from the way you connect political science and psychology here
 
 The Far Right’s broad resurgence is probably one of the most noteworthy trends in the 21st century’s global political landscape, and additionally politicians representing this shift to the right have gained prominence in not only the US, but in states such as Brazil, India, Russia, Turkey, Hungary, Italy, and Japan. It remains increasingly clear that this trend may be semi-permanent, with over a decade of increasing support for such movements among individuals of all walks of life. “Right wing authoritarianism” is a term not only describing a political identity but a set of beliefs and morals potentially bridging the gap between political science and psychology. A “right wing authoritarianism” scale was developed by psychologist Bob Altemeyer in 1981, describing a set of tendencies that might make one more predispositioned to supporting a right-wing authoritarian leader. These tendencies include high levels of submission to established authorities, willingness to engage in retaliatory actions to protect such authorities, and high degrees of conventionalism and traditionalism, whatever that may be in one’s culture. I will attempt to map such values in the United States, and the county-by-county spatial variance between them. I will take state-by-state or metro-by-metro survey data corresponding with right-wing authoritarian tendencies as defined by Altemeyer, and use a regression model to predict what socioeconomic traits could suggest right-wing authoritarianism in geographic regions.
 
@@ -44,7 +44,7 @@ library(terra)
 library(doParallel)
 ```
 
-## Setting up Parallel Cores for Processing Large Datasets
+## Setting up Parallel Cores for Processing Large Datasets This is a really helpful pattern. I learned how to detect the number of cores and register them with doParallel for potentially large datasets.
 
 ```{r}
 num_cores <- parallel::detectCores() - 1
@@ -107,7 +107,7 @@ Since the religion census lists affiliation with every single religious organiza
 
 The Religion Census finds total adherence rates for Christian denominations (e.g. Evangelical Protestant is not a single organization but rather many with similar characteristics)
 
-For smaller religions (Mormonism, Judaism, Islam, Hinduism, Buddhism), I had to manually search through the hundreds of congregations to find these specific groups. There are separate columns for Jewish and Buddhist denominations, but I am combining them, as they are quite small religions.
+For smaller religions (Mormonism, Judaism, Islam, Hinduism, Buddhism), I had to manually search through the hundreds of congregations to find these specific groups. There are separate columns for Jewish and Buddhist denominations, but I am combining them, as they are quite small religions. Your description of how you used NHGIS and ACS tables and converted counts to proportions is very clear.
 
 ```{r}
 religion2020 <- read.csv("data/religion2020.csv")
@@ -167,7 +167,7 @@ leaflet() %>%
   addLegend(data=demog_geom_prj, position="bottomright", pal = color_bprt, values = ~BPRTRATE_2020, title="Black Protestant Adherence Rate by County")
 ```
 
-# Cleaning Religion Data
+# Cleaning Religion Data I learned from this that checking for unrealistic values and planning to trim them using z-score thresholds is an important step before building regression models.
 It appears that there are many outliers in religious adherence values, with some being suspiciously high, even higher than county populations. This may pose problems for modeling Right Wing Authoritarianism in the future.  I will confine values to be within a certain number of z-scores from the mean of all counties.
 
 # Loading Pew and PRRI Polling Data

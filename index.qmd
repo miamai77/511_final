@@ -17,7 +17,7 @@ Perhaps class is a primary predictor of RWA, or urban-rural location, or perhaps
 Firstly, we examine existing survey data pertaining to right-wing authoritarianism in the United States. There are two primary surveyors I've found to have information pertaining to RWA-adjacent values: Gallup and the Public Religion Research Institute.
 I take state-by-state and metro-by-metro information on RWA from these sources, and model them from Census Data pertaining to socioeconomic factors, as well as religion data from each county.
 
-```{r, message=F, warning=F, echo=F}
+```{r, message=F, warning=F, echo=F, include=F} # Trying to add something that will prevent the installation process from being printed. Maybe just list whats needed? 
 install.packages("tidyverse")
 install.packages("leaflet")
 install.packages("kableExtra")
@@ -62,6 +62,8 @@ Upon the creation of an account, one has free access to all their data. However,
 I did some initial cleaning of the data in excel. If this is not permissible in the final project, I will fix this.
 
 I began by downloading information on race, education, income, poverty, age, and urban/rural status for all counties in the United States. I used the 2023 American Community survey for all topics except urban/rural status, for which only 2020 was available. Connecticut recently changed its counties into "planning regions" so there is discontinuity from 2021 onward that will hinder joining to religion data later on. So for Connecticut, I used the 2021 ACS.
+
+# I like that you are explaining the whole process and the reasons youre doing something specifically
 
 The following tables were downloaded:
 
@@ -166,6 +168,7 @@ leaflet() %>%
   addPolygons(data=demog_geom_prj, color=~color_bprt(demog_geom_prj$BPRTRATE_2020), stroke=FALSE, fillOpacity=0.9, popup=~paste("County:", NAME_E, "\n Black Protestant Adherence Rate:", round(BPRTRATE_2020, 2))) %>%
   addLegend(data=demog_geom_prj, position="bottomright", pal = color_bprt, values = ~BPRTRATE_2020, title="Black Protestant Adherence Rate by County")
 ```
+# Will you map all the religions youre looking at? Is there a way to make these maps on like, a selector, where you can select which map so its not multiple maps but just one? 
 
 # Cleaning Religion Data
 It appears that there are many outliers in religious adherence values, with some being suspiciously high, even higher than county populations. This may pose problems for modeling Right Wing Authoritarianism in the future.  I will confine values to be within a certain number of z-scores from the mean of all counties.
